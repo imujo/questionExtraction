@@ -1,0 +1,9 @@
+SPACE = 32
+RIGHT = 3
+LEFT = 2
+UP = 0
+DOWN = 1
+ENTER = 13
+ESC = 27
+
+
