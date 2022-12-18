@@ -1,6 +1,6 @@
 from displayImages.functions import *
 from pdfToImages.functions import *
-
+import cv2
 
 
 
@@ -12,6 +12,13 @@ from pdfToImages.functions import *
 
 image = cv2.imread('image.png')
 
-selectQuestions(image)
+selected = selectQuestions(image)
+
+
+
+
+for i in range (len(selected)):
+    cv2.imshow(f'Image {i}', selected[i])
+    cv2.waitKey()
 
 

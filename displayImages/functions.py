@@ -1,12 +1,27 @@
 import cv2
 import displayImages.key_mapping as k
 import numpy as np
+from displayImages.constants import SCREEN_WIDTH
 
-def displayImage(window_name:str, image, positionX:int = 0 , positionY:int = 0):
+
+def displayImage(window_name:str, image, width = 0, height = 0, positionX:int = 0 , positionY:int = 0):
+    image = image.copy()
+    h,w,_ = image.shape
+    ratio = w/h
+
+    if (width == 0 and height == 0):
+        width = w
+        height = h
+    elif (width == 0):
+        width = (w * height) // h
+    elif (height == 0):
+        height = (h * width) // w
+
+    resized = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)    
+
     cv2.namedWindow(window_name)
-    cv2.moveWindow(window_name, positionX, positionY)
-    cv2.imshow(window_name, image)
-
+    cv2.moveWindow(window_name, positionX, positionY) 
+    cv2.imshow(window_name, resized)
 
 def selectPagesNavigation(currentPage, numOfPages):
     key = cv2.waitKey()
@@ -24,7 +39,6 @@ def selectPagesNavigation(currentPage, numOfPages):
 
     return
 
-
 def higlightImage (image, borderColor=(0, 0, 255), borderThickness = 10):
     image = image.copy()
 
@@ -33,7 +47,6 @@ def higlightImage (image, borderColor=(0, 0, 255), borderThickness = 10):
     cv2.rectangle(image, (0,0), (width, height), color=borderColor, thickness= borderThickness)
 
     return image
-
 
 def selectPages(pages:list):
 
@@ -72,16 +85,13 @@ def selectPages(pages:list):
                 exit()
         
         cv2.destroyWindow(windowName)
-            
-
-
-
-
 
 def getContours(image, kernel_size, dilation_iterations):
+    image = image.copy()
 
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
 
     _, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU |
                                cv2.THRESH_BINARY_INV)
@@ -95,23 +105,92 @@ def getContours(image, kernel_size, dilation_iterations):
 
     return contours
 
-def drawContours(image, contours, higlightedContourIndexes):
-    blank = np.zeros(image.shape, dtype="uint8")
-    cv2.drawContours(blank, contours, -1, (255, 255, 255), 2)
+def drawContours(image, contours, higlightedContourIndex, higlightedContourColor = (0,0,255), contourColor=(255,0,0), thickness = 2):
+    image = image.copy()
+    # blank = np.zeros(image.shape, dtype="uint8")
+    cv2.drawContours(image, contours, -1, contourColor, thickness)
+    cv2.drawContours(
+        image, contours, higlightedContourIndex, higlightedContourColor, thickness)
+    return image
 
-    for higlightedContourIndex in higlightedContourIndexes:
-        cv2.drawContours(
-            blank, contours, higlightedContourIndex, (0, 255, 255), 2)
+def selectQuestionsNavigation(currentIterations, higlightedContourIndex, contoursLen):
+    key = cv2.waitKey()
 
-    return blank
+    if (key == k.UP): return 'increase'
+    elif (key == k.DOWN and currentIterations != 0): return 'decrease'
+    elif (key == k.ESC): return 'exit'
+    elif (key == k.ENTER): return 'done'
+    elif (key == k.SPACE): return 'select'
+    elif (key == k.RIGHT and higlightedContourIndex != -1): return 'left'
+    elif (key == k.LEFT and higlightedContourIndex != contoursLen-1): return 'right'
+
+def applyMask(image, maskCoordinates, color=(255, 255, 255)):
+    image = image.copy()
+
+    for coordinates in maskCoordinates:
+        cv2.rectangle(image, coordinates[0], coordinates[1], color, -1)
+    
+    return image
+
+def drawRectangles(image, rectangleCoordinates, borderColor = (0,255,0), thickness = 2):
+    image = image.copy()
+
+    for rectangleCoordinates in rectangleCoordinates:
+        cv2.rectangle(image, rectangleCoordinates[0], rectangleCoordinates[1], borderColor, thickness)
+    
+    return image
+
+def getImagesFromCoordinates(image, coordinates):
+    images = []
+    for coordinate in coordinates:
+        x1 = coordinate[0][0]
+        y1 = coordinate[0][1]
+        x2 = coordinate[1][0]
+        y2 = coordinate[1][1]
+        
+        croppedImage = image[y1:y2, x1:x2]
+        images.append(croppedImage)
+
+    return images
+
 
 def selectQuestions(page):
+    image = page.copy()
+
+    selectedCoordinates = []
+    kernelSize = (15, 15)
+    iterations = 1
+    higlightedContourIndex = 0
+
 
     while True:
-        contours = getContours(page, (20, 20), 1)
+        maskedImage = applyMask(image, selectedCoordinates)
+        contours = getContours(maskedImage, kernelSize, iterations)
 
-        contoursImage = drawContours(page, contours, [])
+        contoursImage = drawContours(image, contours, higlightedContourIndex, contourColor=(255, 210, 162))
+        contoursImage = drawRectangles(contoursImage, selectedCoordinates, borderColor=(71,48,2))
 
-        cv2.imshow('contours', contoursImage)
+        displayImage('Contours', contoursImage, width=SCREEN_WIDTH//2)
 
-        cv2.waitKey()
+        navigation = selectQuestionsNavigation(iterations, higlightedContourIndex, len(contours))
+
+        match navigation:
+            case 'increase':
+                iterations += 1
+                higlightedContourIndex = 0
+            case 'decrease':
+                iterations -= 1
+                higlightedContourIndex = 0
+            case 'left':
+                higlightedContourIndex -=1
+            case 'right':
+                higlightedContourIndex +=1
+            case 'select':
+                x, y, w, h = cv2.boundingRect(contours[higlightedContourIndex])
+                selectedCoordinates.append(((x,y), (x+w, y+h)))
+            case 'done':
+                return getImagesFromCoordinates(page, selectedCoordinates)
+            case 'exit':
+                exit()
+        
+        cv2.destroyWindow('Contours')
