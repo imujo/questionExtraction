@@ -1,7 +1,7 @@
 from displayImages.functions import *
 from pdfToImages.functions import *
 import cv2
-
+from imagesToOneNote.functions import imagesToOneNote
 
 
 # pdfFilePath = selectPdfFile()
@@ -14,11 +14,5 @@ image = cv2.imread('image.png')
 
 selected = selectQuestions(image)
 
-
-
-
-for i in range (len(selected)):
-    cv2.imshow(f'Image {i}', selected[i])
-    cv2.waitKey()
-
+imagesToOneNote(selected, './')
 

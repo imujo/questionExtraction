@@ -7,7 +7,6 @@ from displayImages.constants import SCREEN_WIDTH
 def displayImage(window_name:str, image, width = 0, height = 0, positionX:int = 0 , positionY:int = 0):
     image = image.copy()
     h,w,_ = image.shape
-    ratio = w/h
 
     if (width == 0 and height == 0):
         width = w
