@@ -109,7 +109,7 @@ def drawContours(image, contours, higlightedContourIndex, higlightedContourColor
     # blank = np.zeros(image.shape, dtype="uint8")
     cv2.drawContours(image, contours, -1, contourColor, thickness)
     cv2.drawContours(
-        image, contours, higlightedContourIndex, higlightedContourColor, thickness)
+        image, contours, higlightedContourIndex, higlightedContourColor, thickness+2)
     return image
 
 def selectQuestionsNavigation(currentIterations, higlightedContourIndex, contoursLen):
@@ -152,21 +152,20 @@ def getImagesFromCoordinates(image, coordinates):
 
     return images
 
-
 def selectQuestions(page):
     image = page.copy()
 
     selectedCoordinates = []
-    kernelSize = (15, 15)
+    kernelSize = (12, 12)
     iterations = 1
     higlightedContourIndex = 0
 
 
     while True:
-        maskedImage = applyMask(image, selectedCoordinates)
+        maskedImage = applyMask(image, selectedCoordinates) # to stop contouring that part of the image
         contours = getContours(maskedImage, kernelSize, iterations)
 
-        contoursImage = drawContours(image, contours, higlightedContourIndex, contourColor=(255, 210, 162))
+        contoursImage = drawContours(image, contours, higlightedContourIndex, higlightedContourColor=(27, 27, 153), contourColor=(157,90,23))
         contoursImage = drawRectangles(contoursImage, selectedCoordinates, borderColor=(71,48,2))
 
         displayImage('Contours', contoursImage, width=SCREEN_WIDTH//2)
