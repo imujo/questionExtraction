@@ -91,7 +91,7 @@ def imagesToOneNote(images, pathToSave):
     zadatciPerRow = []
 
     for i in range(numRows):
-        if (i == numRows-1):
+        if (i == numRows-1 and len(images) % c.ZADATCI_PER_ROW != 0):
             zadatciPerRow.append(len(images) % c.ZADATCI_PER_ROW)
         else:
             zadatciPerRow.append(c.ZADATCI_PER_ROW)
@@ -103,6 +103,8 @@ def imagesToOneNote(images, pathToSave):
         for j in range(zadatciPerRow[rowIndex]):
             imageIndex = rowIndex*c.ZADATCI_PER_ROW + j
             image = images[imageIndex]
+            cv2.imshow('image', image)
+            cv2.waitKey()
 
             resizedImage = resizeImage(
                 image, c.IMAGE_WIDTH, c.IMAGE_HEIGHT, c.BACKGROUND_COLOR, progress=(imageIndex+1)/len(images), progressBackgroundColor=c.PROGRESS_BACKGROUND_COLOR, progressColor=c.PROGRESS_COLOR)

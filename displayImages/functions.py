@@ -1,7 +1,5 @@
 import cv2
 import displayImages.key_mapping as k
-import numpy as np
-from displayImages.constants import SCREEN_WIDTH
 
 
 def displayImage(window_name:str, image, width = 0, height = 0, positionX:int = 0 , positionY:int = 0):
@@ -53,7 +51,6 @@ def selectPages(pages:list):
     selectedPages = set()
 
     while True:
-        print(selectedPages)
         page = pages[currentPage]
         windowName = f"Page {currentPage+1} :: LEFT / RIGHT for navigation :: SPACE for selecting :: ENTER for done"
 
@@ -79,6 +76,7 @@ def selectPages(pages:list):
                 else:
                     selectedPages.add(currentPage)
             case 'done': 
+                cv2.destroyAllWindows()
                 return selectedPages
             case 'exit':
                 exit()
@@ -158,27 +156,34 @@ def selectQuestions(page):
     selectedCoordinates = []
     kernelSize = (12, 12)
     iterations = 1
-    higlightedContourIndex = 0
+    higlightedContourIndex = -1
 
 
     while True:
         maskedImage = applyMask(image, selectedCoordinates) # to stop contouring that part of the image
         contours = getContours(maskedImage, kernelSize, iterations)
 
+        # set higlighted contour to be the first in image
+        if (higlightedContourIndex == -1):
+            higlightedContourIndex = len(contours)-1
+
+        # reset higlighted contour if it's out of range
+        while higlightedContourIndex >= len(contours):
+            higlightedContourIndex -=1
+
+
         contoursImage = drawContours(image, contours, higlightedContourIndex, higlightedContourColor=(27, 27, 153), contourColor=(157,90,23))
         contoursImage = drawRectangles(contoursImage, selectedCoordinates, borderColor=(71,48,2))
 
-        displayImage('Contours', contoursImage, width=SCREEN_WIDTH//2)
+        displayImage('Contours', contoursImage)
 
         navigation = selectQuestionsNavigation(iterations, higlightedContourIndex, len(contours))
 
         match navigation:
             case 'increase':
                 iterations += 1
-                higlightedContourIndex = 0
             case 'decrease':
                 iterations -= 1
-                higlightedContourIndex = 0
             case 'left':
                 higlightedContourIndex -=1
             case 'right':
@@ -187,6 +192,7 @@ def selectQuestions(page):
                 x, y, w, h = cv2.boundingRect(contours[higlightedContourIndex])
                 selectedCoordinates.append(((x,y), (x+w, y+h)))
             case 'done':
+                cv2.destroyAllWindows()
                 return getImagesFromCoordinates(page, selectedCoordinates)
             case 'exit':
                 exit()

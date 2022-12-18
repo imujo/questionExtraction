@@ -1,18 +1,59 @@
-from displayImages.functions import *
-from pdfToImages.functions import *
-import cv2
+from displayImages.functions import selectPages, selectQuestions
+from pdfToImages.functions import pdfToImages, pilToCv2Image, selectPdfFile, selectOutputDir
 from imagesToOneNote.functions import imagesToOneNote
 
 
-# pdfFilePath = selectPdfFile()
 
-# pages = pdfToImages(pdfFilePath)
 
-# selectPages(pages)
+if __name__ == '__main__':
 
-image = cv2.imread('image.png')
+    print("*--- WELCOME TO THE QUESTION SELECTION APP ---*")
+    print('\n\n')
 
-selected = selectQuestions(image)
+    print("Select a PDF file")
 
-imagesToOneNote(selected, './')
+    pathToPdfFile = selectPdfFile()
+
+    print('\n\n')
+
+    # outputPath = selectOutputDir()
+    outputPath = './images/'
+
+    print('Processing PDF file...')
+    pilImages = pdfToImages(pathToPdfFile)
+
+    pages = []
+
+    for pilImage in pilImages:
+        page = pilToCv2Image(pilImage)
+        pages.append(page)
+
+
+    print('\n\n')
+    
+    print ("Select pages")
+    selectedPageIndexes = selectPages(pages)
+
+    print('\n\n')
+
+    allQuestions = []
+
+    print("Select questions")
+    for pageIndex in sorted(selectedPageIndexes):
+        page = pages[pageIndex]
+
+        questions = selectQuestions(page)
+        allQuestions += questions
+
+    print('\n\n')
+    
+    print("Converting images to Onenote friendly type")
+
+    imagesToOneNote(allQuestions, outputPath)
+
+
+    print('\n\n')
+    print("All done!")
+    
+
 

@@ -1,14 +1,18 @@
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, askdirectory
 from pdf2image import convert_from_path
 import numpy as np
+import cv2
 
 def selectPdfFile() -> str:
     return askopenfilename(title="Select a PDF File", filetypes=(("pdf files", "*.pdf"),("all files", "*.*")))
 
+def selectOutputDir() -> str:
+    return askdirectory(title="Select the save directory")
+
 def pilToCv2Image(pilImage):
     cv2Image = np.array(pilImage)
     # Convert RGB to BGR
-    cv2Image = cv2Image[:, :, ::-1].copy()  
+    cv2Image = cv2Image[:, :, ::-1].copy() 
 
     return cv2Image   
 
