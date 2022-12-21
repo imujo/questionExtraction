@@ -110,16 +110,27 @@ def drawContours(image, contours, higlightedContourIndex, higlightedContourColor
         image, contours, higlightedContourIndex, higlightedContourColor, thickness+2)
     return image
 
-def selectQuestionsNavigation(currentIterations, higlightedContourIndex, contoursLen):
+def selectQuestionsNavigation(currentIterations, higlightedContourIndex, contoursLen, kernelSize):
     key = cv2.waitKey()
 
-    if (key == k.UP): return 'increase'
-    elif (key == k.DOWN and currentIterations != 0): return 'decrease'
+    if (key == k.UP): return 'increaseI'
+    elif (key == k.DOWN and currentIterations != 0): return 'decreaseI'
+
+    elif (key == k.D): return 'increaseK0'
+    elif (key == k.A and kernelSize[0] != 3): return 'decreaseK0'
+
+    elif (key == k.W): return 'increaseK1'
+    elif (key == k.S and kernelSize[1] != 3): return 'decreaseK1'
+
+    elif (key == k.RIGHT and higlightedContourIndex != -1): return 'left'
+    elif (key == k.LEFT and higlightedContourIndex != contoursLen-1): return 'right'
+
+
     elif (key == k.ESC): return 'exit'
     elif (key == k.ENTER): return 'done'
     elif (key == k.SPACE): return 'select'
-    elif (key == k.RIGHT and higlightedContourIndex != -1): return 'left'
-    elif (key == k.LEFT and higlightedContourIndex != contoursLen-1): return 'right'
+
+
 
 def applyMask(image, maskCoordinates, color=(255, 255, 255)):
     image = image.copy()
@@ -154,7 +165,7 @@ def selectQuestions(page):
     image = page.copy()
 
     selectedCoordinates = []
-    kernelSize = (12, 12)
+    kernelSize = [12, 12]
     iterations = 1
     higlightedContourIndex = -1
 
@@ -177,13 +188,26 @@ def selectQuestions(page):
 
         displayImage('Contours', contoursImage)
 
-        navigation = selectQuestionsNavigation(iterations, higlightedContourIndex, len(contours))
+        navigation = selectQuestionsNavigation(iterations, higlightedContourIndex, len(contours), kernelSize)
+
+        print(kernelSize)
 
         match navigation:
-            case 'increase':
+            case 'increaseI':
                 iterations += 1
-            case 'decrease':
+            case 'decreaseI':
                 iterations -= 1
+
+            case 'increaseK0':
+                kernelSize[0] += 1
+            case 'decreaseK0':
+                kernelSize[0] -= 1
+
+            case 'increaseK1':
+                kernelSize[1] += 1
+            case 'decreaseK1':
+                kernelSize[1] -= 1
+                
             case 'left':
                 higlightedContourIndex -=1
             case 'right':
