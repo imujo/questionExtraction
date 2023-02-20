@@ -4,3 +4,5 @@
 /imagesToOneNote/__pycache__
 image.png
 /images/*
+/test
+test.py

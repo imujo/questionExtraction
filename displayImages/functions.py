@@ -117,7 +117,7 @@ def selectQuestionsNavigation(currentIterations, higlightedContourIndex, contour
 
     if (key == k.UP):
         return 'increaseI'
-    elif (key == k.DOWN and currentIterations != 0):
+    elif (key == k.DOWN and currentIterations != -1):
         return 'decreaseI'
 
     elif (key == k.D):
@@ -140,7 +140,10 @@ def selectQuestionsNavigation(currentIterations, higlightedContourIndex, contour
     elif (key == k.ENTER):
         return 'done'
     elif (key == k.SPACE):
-        return 'select'
+        if currentIterations == -1:
+            return 'doneAll'
+        else:
+            return 'select'
 
 
 def applyMask(image, maskCoordinates, color=(255, 255, 255)):
@@ -178,6 +181,8 @@ def getImagesFromCoordinates(image, coordinates):
 
 def selectQuestions(page):
     image = page.copy()
+    imH, imW, imC = image.shape
+    pageCoordinates = ((0, 0), (imW, imH))
 
     selectedCoordinates = []
     kernelSize = [12, 12]
@@ -187,7 +192,8 @@ def selectQuestions(page):
     while True:
         # to stop contouring that part of the image
         maskedImage = applyMask(image, selectedCoordinates)
-        contours = getContours(maskedImage, kernelSize, iterations)
+        contours = getContours(maskedImage, kernelSize,
+                               iterations if iterations != -1 else 0)
 
         # set higlighted contour to be the first in image
         if (higlightedContourIndex == -1):
@@ -202,7 +208,11 @@ def selectQuestions(page):
         contoursImage = drawRectangles(
             contoursImage, selectedCoordinates, borderColor=(71, 48, 2))
 
-        displayImage('Contours', contoursImage)
+        if (iterations == -1):
+            displayImage("Contours", cv2.rectangle(
+                image.copy(), (0, 0), (imW-2, imH-2), (27, 27, 153), 10))
+        else:
+            displayImage('Contours', contoursImage)
 
         navigation = selectQuestionsNavigation(
             iterations, higlightedContourIndex, len(contours), kernelSize)
@@ -233,6 +243,9 @@ def selectQuestions(page):
             case 'done':
                 cv2.destroyAllWindows()
                 return getImagesFromCoordinates(page, selectedCoordinates)
+            case 'doneAll':
+                cv2.destroyAllWindows()
+                return getImagesFromCoordinates(page, [pageCoordinates])
             case 'exit':
                 exit()
 
