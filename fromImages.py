@@ -20,33 +20,13 @@ if __name__ == '__main__':
     print('Processing Image files...')
     pilImages = imagePathsToImages(imagePaths)
 
-    pages = []
+    images = []
 
     for pilImage in pilImages:
         page = pilToCv2Image(pilImage)
-        pages.append(page)
+        images.append(page)
 
-    print('\n\n')
-
-    print("Select pages")
-    selectedPageIndexes = selectPages(pages)
-
-    print('\n\n')
-
-    allQuestions = []
-
-    print("Select questions")
-    for pageIndex in sorted(selectedPageIndexes):
-        page = pages[pageIndex]
-
-        questions = selectQuestions(page)
-        allQuestions += questions
-
-    print('\n\n')
-
-    print("Converting images to Onenote friendly type")
-
-    imagesToOneNote(allQuestions, outputPath)
+    imagesToOneNote(images, outputPath)
 
     print('\n\n')
     print("All done!")
