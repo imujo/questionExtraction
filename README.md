@@ -12,11 +12,24 @@ tk==0.1.0
 
 ## Usage
 
-To use the app run the following command
+Run the app with the following commands
 
 ```bash
-python run.py
+python fromPDF.py
 ```
+or
+```
+python fromImages.py
+```
+
+# From PDF
+- select a PDF file you want to select questions from
+- go through the PDF's pages and select ones with your questions
+- go through the pages and select the questions
+
+# From Images
+- select a number of images
+- select question from the images
 
 ## Licence
 
